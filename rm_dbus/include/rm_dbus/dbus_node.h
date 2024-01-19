@@ -53,5 +53,6 @@ public:
   DBusNode();
   ~DBusNode() = default;
   void run();
+  void selfCheck();
 };
 #endif  // SRC_RM_BRIDGE_INCLUDE_DBUS_NODE_H_

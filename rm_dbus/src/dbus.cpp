@@ -91,6 +91,7 @@ void DBus::init(const char* serial)
   ioctl(fd, TCSETS2, &options);
 
   port_ = fd;
+  ROS_INFO("[rt_dbus] Success to open dbus\n");
 }
 
 void DBus::read()

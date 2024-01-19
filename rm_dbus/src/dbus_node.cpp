@@ -45,6 +45,7 @@ int main(int argc, char** argv)
   while (ros::ok())
   {
     dbus_node.run();
+    dbus_node.selfCheck();
     loop_rate.sleep();
   }
   return 0;
@@ -62,4 +63,13 @@ void DBusNode::run()
   dbus_.read();
   dbus_.getData(dbus_cmd_);
   dbus_pub_.publish(dbus_cmd_);
+}
+
+void DBusNode::selfCheck()
+{
+  if (access(serial_port_.data(), F_OK) == -1)
+  {
+    ROS_ERROR("[dbus_node] %s don't exist, will exit...\n", serial_port_.data());
+    exit(EXIT_FAILURE);
+  }
 }
