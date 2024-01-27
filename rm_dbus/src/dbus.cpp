@@ -169,7 +169,7 @@ void DBus::unpack()
   is_success = true;
 }
 
-void DBus::getData(rm_msgs::DbusData& d_bus_data) const
+void DBus::getData(rm_msgs::DbusData& d_bus_data)
 {
   if (is_success)
   {
@@ -207,5 +207,15 @@ void DBus::getData(rm_msgs::DbusData& d_bus_data) const
     d_bus_data.key_b = (d_bus_data_.key >> 8) & 0x80 ? true : false;
     if (is_update_)
       d_bus_data.stamp = ros::Time::now();
+  }
+  else
+  {
+    count_time_++;
+    if (count_time_ >= thread_hold_)
+    {
+      ROS_WARN("[rt_dbus] Dbus does not unpack a package successful\n");
+      ROS_WARN("Please keep Dbus on or may be Dbus port is broken\n");
+      count_time_ = 0;
+    }
   }
 }
