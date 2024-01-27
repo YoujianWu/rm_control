@@ -250,4 +250,12 @@ bool RmRobotHW::enableImuTrigger(rm_msgs::EnableImuTrigger::Request& req, rm_msg
   return false;
 }
 
+RmRobotHW::~RmRobotHW()
+{
+  for(auto& bus: can_buses_)
+  {
+    delete bus;
+  }
+}
+
 }  // namespace rm_hw

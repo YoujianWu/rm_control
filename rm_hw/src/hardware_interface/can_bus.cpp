@@ -54,6 +54,24 @@ CanBus::CanBus(const std::string& bus_name, CanDataPtr data_ptr, int thread_prio
   rm_frame0_.can_dlc = 8;
   rm_frame1_.can_id = 0x1FF;
   rm_frame1_.can_dlc = 8;
+  for (const auto& item : *data_ptr_.id2act_data_)
+  {
+    if (item.second.type.find("cheetah") != std::string::npos)
+    {
+      can_frame frame{};
+      frame.can_id = item.first;
+      frame.can_dlc = 8;
+      frame.data[0] = 0xFF;
+      frame.data[1] = 0xFF;
+      frame.data[2] = 0xFF;
+      frame.data[3] = 0xFF;
+      frame.data[4] = 0xFF;
+      frame.data[5] = 0xFF;
+      frame.data[6] = 0xFF;
+      frame.data[7] = 0xFC;
+      socket_can_.write(&frame);
+    }
+  }
 }
 
 void CanBus::write()
@@ -274,4 +292,25 @@ void CanBus::frameCallback(const can_frame& frame)
   read_buffer_.push_back(can_frame_stamp);
 }
 
+CanBus::~CanBus()
+{
+  for (const auto& item : *data_ptr_.id2act_data_)
+  {
+    if (item.second.type.find("cheetah") != std::string::npos)
+    {
+      can_frame frame{};
+      frame.can_id = item.first;
+      frame.can_dlc = 8;
+      frame.data[0] = 0xFF;
+      frame.data[1] = 0xFF;
+      frame.data[2] = 0xFF;
+      frame.data[3] = 0xFF;
+      frame.data[4] = 0xFF;
+      frame.data[5] = 0xFF;
+      frame.data[6] = 0xFF;
+      frame.data[7] = 0xFD;
+      socket_can_.write(&frame);
+    }
+  }
+}
 }  // namespace rm_hw

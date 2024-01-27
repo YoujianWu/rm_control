@@ -80,6 +80,7 @@ public:
    * @param robot_hw_nh Node-handle for robot hardware.
    * @return True when init successful, False when failed.
    */
+   ~RmRobotHW() override;
   bool init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh) override;
   /** \brief Comunicate with hardware. Get datas, status of robot.
    *

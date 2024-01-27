@@ -67,6 +67,7 @@ public:
    *
    * \param time ROS time, but it doesn't be used.
    */
+   ~CanBus();
   void read(ros::Time time);
   /** \brief Write commands to can bus.
    *
