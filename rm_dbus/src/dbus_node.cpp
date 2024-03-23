@@ -70,6 +70,10 @@ void DBusNode::selfCheck()
   if (access(serial_port_.data(), F_OK) == -1)
   {
     ROS_ERROR("[dbus_node] %s don't exist, will exit...\n", serial_port_.data());
-    exit(EXIT_FAILURE);
+    FILE* file;
+    file = fopen("/home/dynamicx/Error_report.txt", "a");
+    fprintf(file, "%s\n", "dbus broken");
+    fclose(file);
+    std::exit(EXIT_FAILURE);
   }
 }
