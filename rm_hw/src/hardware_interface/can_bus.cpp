@@ -173,7 +173,139 @@ void CanBus::read(ros::Time time)
       }
     }
     // Check MIT Cheetah motor
-    else if (frame.can_id == static_cast<unsigned int>(0x000))
+    else if (frame.can_id == static_cast<unsigned int>(0x00B))
+    {
+      if (data_ptr_.id2act_data_->find(frame.data[0]) != data_ptr_.id2act_data_->end())
+      {
+        ActData& act_data = data_ptr_.id2act_data_->find(frame.data[0])->second;
+        const ActCoeff& act_coeff = data_ptr_.type2act_coeffs_->find(act_data.type)->second;
+        if (act_data.type.find("cheetah") != std::string::npos)
+        {  // MIT Cheetah Motor
+          act_data.q_raw = (frame.data[1] << 8) | frame.data[2];
+          uint16_t qd = (frame.data[3] << 4) | (frame.data[4] >> 4);
+          uint16_t cur = ((frame.data[4] & 0xF) << 8) | frame.data[5];
+          // Multiple cycle
+          // NOTE: The raw data range is -4pi~4pi
+          if (act_data.seq != 0)  // not the first receive
+          {
+            double pos_new = act_coeff.act2pos * static_cast<double>(act_data.q_raw) + act_coeff.act2pos_offset +
+                             static_cast<double>(act_data.q_circle) * 8 * M_PI + act_data.offset;
+            if (pos_new - act_data.pos > 4 * M_PI)
+              act_data.q_circle--;
+            else if (pos_new - act_data.pos < -4 * M_PI)
+              act_data.q_circle++;
+          }
+          try
+          {  // Duration will be out of dual 32-bit range while motor failure
+            act_data.frequency = 1. / (frame_stamp.stamp - act_data.stamp).toSec();
+          }
+          catch (std::runtime_error& ex)
+          {
+          }
+          act_data.stamp = frame_stamp.stamp;
+          act_data.seq++;
+          act_data.pos = act_coeff.act2pos * static_cast<double>(act_data.q_raw) + act_coeff.act2pos_offset +
+                         static_cast<double>(act_data.q_circle) * 8 * M_PI + act_data.offset;
+          // Converter raw CAN data to position velocity and effort.
+          act_data.vel = act_coeff.act2vel * static_cast<double>(qd) + act_coeff.act2vel_offset;
+          act_data.effort = act_coeff.act2effort * static_cast<double>(cur) + act_coeff.act2effort_offset;
+          // Low pass filter
+          act_data.lp_filter->input(act_data.vel);
+          act_data.vel = act_data.lp_filter->output();
+          continue;
+        }
+      }
+    }
+
+    else if (frame.can_id == static_cast<unsigned int>(0x00C))
+    {
+      if (data_ptr_.id2act_data_->find(frame.data[0]) != data_ptr_.id2act_data_->end())
+      {
+        ActData& act_data = data_ptr_.id2act_data_->find(frame.data[0])->second;
+        const ActCoeff& act_coeff = data_ptr_.type2act_coeffs_->find(act_data.type)->second;
+        if (act_data.type.find("cheetah") != std::string::npos)
+        {  // MIT Cheetah Motor
+          act_data.q_raw = (frame.data[1] << 8) | frame.data[2];
+          uint16_t qd = (frame.data[3] << 4) | (frame.data[4] >> 4);
+          uint16_t cur = ((frame.data[4] & 0xF) << 8) | frame.data[5];
+          // Multiple cycle
+          // NOTE: The raw data range is -4pi~4pi
+          if (act_data.seq != 0)  // not the first receive
+          {
+            double pos_new = act_coeff.act2pos * static_cast<double>(act_data.q_raw) + act_coeff.act2pos_offset +
+                             static_cast<double>(act_data.q_circle) * 8 * M_PI + act_data.offset;
+            if (pos_new - act_data.pos > 4 * M_PI)
+              act_data.q_circle--;
+            else if (pos_new - act_data.pos < -4 * M_PI)
+              act_data.q_circle++;
+          }
+          try
+          {  // Duration will be out of dual 32-bit range while motor failure
+            act_data.frequency = 1. / (frame_stamp.stamp - act_data.stamp).toSec();
+          }
+          catch (std::runtime_error& ex)
+          {
+          }
+          act_data.stamp = frame_stamp.stamp;
+          act_data.seq++;
+          act_data.pos = act_coeff.act2pos * static_cast<double>(act_data.q_raw) + act_coeff.act2pos_offset +
+                         static_cast<double>(act_data.q_circle) * 8 * M_PI + act_data.offset;
+          // Converter raw CAN data to position velocity and effort.
+          act_data.vel = act_coeff.act2vel * static_cast<double>(qd) + act_coeff.act2vel_offset;
+          act_data.effort = act_coeff.act2effort * static_cast<double>(cur) + act_coeff.act2effort_offset;
+          // Low pass filter
+          act_data.lp_filter->input(act_data.vel);
+          act_data.vel = act_data.lp_filter->output();
+          continue;
+        }
+      }
+    }
+
+    else if (frame.can_id == static_cast<unsigned int>(0x00D))
+    {
+      if (data_ptr_.id2act_data_->find(frame.data[0]) != data_ptr_.id2act_data_->end())
+      {
+        ActData& act_data = data_ptr_.id2act_data_->find(frame.data[0])->second;
+        const ActCoeff& act_coeff = data_ptr_.type2act_coeffs_->find(act_data.type)->second;
+        if (act_data.type.find("cheetah") != std::string::npos)
+        {  // MIT Cheetah Motor
+          act_data.q_raw = (frame.data[1] << 8) | frame.data[2];
+          uint16_t qd = (frame.data[3] << 4) | (frame.data[4] >> 4);
+          uint16_t cur = ((frame.data[4] & 0xF) << 8) | frame.data[5];
+          // Multiple cycle
+          // NOTE: The raw data range is -4pi~4pi
+          if (act_data.seq != 0)  // not the first receive
+          {
+            double pos_new = act_coeff.act2pos * static_cast<double>(act_data.q_raw) + act_coeff.act2pos_offset +
+                             static_cast<double>(act_data.q_circle) * 8 * M_PI + act_data.offset;
+            if (pos_new - act_data.pos > 4 * M_PI)
+              act_data.q_circle--;
+            else if (pos_new - act_data.pos < -4 * M_PI)
+              act_data.q_circle++;
+          }
+          try
+          {  // Duration will be out of dual 32-bit range while motor failure
+            act_data.frequency = 1. / (frame_stamp.stamp - act_data.stamp).toSec();
+          }
+          catch (std::runtime_error& ex)
+          {
+          }
+          act_data.stamp = frame_stamp.stamp;
+          act_data.seq++;
+          act_data.pos = act_coeff.act2pos * static_cast<double>(act_data.q_raw) + act_coeff.act2pos_offset +
+                         static_cast<double>(act_data.q_circle) * 8 * M_PI + act_data.offset;
+          // Converter raw CAN data to position velocity and effort.
+          act_data.vel = act_coeff.act2vel * static_cast<double>(qd) + act_coeff.act2vel_offset;
+          act_data.effort = act_coeff.act2effort * static_cast<double>(cur) + act_coeff.act2effort_offset;
+          // Low pass filter
+          act_data.lp_filter->input(act_data.vel);
+          act_data.vel = act_data.lp_filter->output();
+          continue;
+        }
+      }
+    }
+
+    else if (frame.can_id == static_cast<unsigned int>(0x00E))
     {
       if (data_ptr_.id2act_data_->find(frame.data[0]) != data_ptr_.id2act_data_->end())
       {
