@@ -366,4 +366,67 @@ private:
   int hero_bullets_{ 1 }, standard3_bullets_{ 3 }, standard4_bullets_{ 4 }, standard5_bullets_{ 5 };
 };
 
+class BalanceLegLengthTimeChangeGroupUi : public TimeChangeGroupUi
+{
+public:
+  explicit BalanceLegLengthTimeChangeGroupUi(XmlRpc::XmlRpcValue& rpc_value, Base& base, std::deque<Graph>* graph_queue,
+                                             std::deque<Graph>* character_queue)
+    : TimeChangeGroupUi(rpc_value, base, "balance_leg_length", graph_queue, character_queue)
+  {
+    graph_vector_.insert(std::pair<std::string, Graph*>("left_leg", new Graph(rpc_value["config"], base_, id_++)));
+    graph_vector_.insert(std::pair<std::string, Graph*>("right_leg", new Graph(rpc_value["config"], base_, id_++)));
+    int right_ori_x{ 0 };
+    for (auto it = graph_vector_.begin(); it != graph_vector_.end(); ++it)
+    {
+      if (it->first == "left_leg")
+        right_ori_x = it->second->getConfig().start_x + 160;
+      else if (it->first == "right_leg")
+        it->second->setStartX(right_ori_x);
+    }
+  }
+
+  void updateLengthData(const std_msgs::Float64MultiArrayConstPtr& data);
+
+private:
+  void updateConfig() override;
+
+  double left_leg_length_{ .0 }, right_leg_length_{ .0 };
+};
+
+class BalanceLegStateTimeChangeGroupUi : public TimeChangeGroupUi
+{
+public:
+  explicit BalanceLegStateTimeChangeGroupUi(XmlRpc::XmlRpcValue& rpc_value, Base& base, std::deque<Graph>* graph_queue,
+                                            std::deque<Graph>* character_queue)
+    : TimeChangeGroupUi(rpc_value, base, "balance_leg_state", graph_queue, character_queue)
+  {
+    if (rpc_value.hasMember("data"))
+    {
+      XmlRpc::XmlRpcValue& data = rpc_value["data"];
+      ori_x_ = static_cast<int>(data["ori_x"]);
+      ori_y_ = static_cast<int>(data["ori_y"]);
+      distance_ = static_cast<int>(data["distance"]);
+      line_ae_length_ = static_cast<int>(data["line_ae_length"]);
+    }
+    else
+      ROS_WARN("config 's member 'data' not defined.");
+    graph_vector_.insert(std::pair<std::string, Graph*>("left_leg_ab", new Graph(rpc_value["config"], base_, id_++)));
+    graph_vector_.insert(std::pair<std::string, Graph*>("left_leg_bc", new Graph(rpc_value["config"], base_, id_++)));
+    graph_vector_.insert(std::pair<std::string, Graph*>("left_leg_cd", new Graph(rpc_value["config"], base_, id_++)));
+    graph_vector_.insert(std::pair<std::string, Graph*>("left_leg_de", new Graph(rpc_value["config"], base_, id_++)));
+    graph_vector_.insert(std::pair<std::string, Graph*>("right_leg_ab", new Graph(rpc_value["config"], base_, id_++)));
+    graph_vector_.insert(std::pair<std::string, Graph*>("right_leg_bc", new Graph(rpc_value["config"], base_, id_++)));
+    graph_vector_.insert(std::pair<std::string, Graph*>("right_leg_cd", new Graph(rpc_value["config"], base_, id_++)));
+    graph_vector_.insert(std::pair<std::string, Graph*>("right_leg_de", new Graph(rpc_value["config"], base_, id_++)));
+  }
+  void updateLeftLegStateData(const std_msgs::Float64MultiArrayConstPtr& data);
+  void updateRightLegStateData(const std_msgs::Float64MultiArrayConstPtr& data);
+
+private:
+  void updateConfig() override;
+  int line_ae_length_ = 70, distance_{ 140 }, ori_x_, ori_y_;
+  double l_b_x_, l_b_y_, l_c_x_, l_c_y_, l_d_x_, l_d_y_, l_e_x_, l_e_y_;
+  double r_b_x_, r_b_y_, r_c_x_, r_c_y_, r_d_x_, r_d_y_, r_e_x_, r_e_y_;
+};
+
 }  // namespace rm_referee

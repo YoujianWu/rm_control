@@ -483,4 +483,143 @@ void FriendBulletsTimeChangeGroupUi::updateConfig()
   }
 }
 
+void BalanceLegLengthTimeChangeGroupUi::updateLengthData(const std_msgs::Float64MultiArrayConstPtr& data)
+{
+  if (data->data.size() != 2)
+    return;
+  left_leg_length_ = data->data[0];
+  right_leg_length_ = data->data[1];
+  updateForQueue();
+}
+
+void BalanceLegLengthTimeChangeGroupUi::updateConfig()
+{
+  for (auto it : graph_vector_)
+  {
+    if (it.first == "left_leg")
+    {
+      it.second->setStartX(1600);
+      it.second->setStartY(400);
+      it.second->setEndX(1600);
+      it.second->setEndY(400 + 800 * left_leg_length_);
+      if (left_leg_length_ < 0.25)
+        it.second->setColor(rm_referee::GraphColor::GREEN);
+      else
+        it.second->setColor(rm_referee::GraphColor::PINK);
+    }
+    else if (it.first == "right_leg")
+    {
+      it.second->setStartX(1700);
+      it.second->setStartY(400);
+      it.second->setEndX(1700);
+      it.second->setEndY(400 + 800 * right_leg_length_);
+      if (right_leg_length_ < 0.25)
+        it.second->setColor(rm_referee::GraphColor::GREEN);
+      else
+        it.second->setColor(rm_referee::GraphColor::PINK);
+    }
+  }
+}
+void BalanceLegStateTimeChangeGroupUi::updateLeftLegStateData(const std_msgs::Float64MultiArrayConstPtr& data)
+{
+  if (data->data.size() < 8)
+  {
+    ROS_WARN("worry data");
+    return;
+  }
+  double scale = line_ae_length_ / std::hypot(data->data[6], data->data[7]);
+  l_b_x_ = ori_x_ + scale * data->data[0];
+  l_b_y_ = ori_y_ + scale * data->data[1];
+  l_c_x_ = ori_x_ + scale * data->data[2];
+  l_c_y_ = ori_y_ + scale * data->data[3];
+  l_d_x_ = ori_x_ + scale * data->data[4];
+  l_d_y_ = ori_y_ + scale * data->data[5];
+  l_e_x_ = ori_x_ + scale * data->data[6];
+  l_e_y_ = ori_y_ + scale * data->data[7];
+  updateForQueue();
+}
+
+void BalanceLegStateTimeChangeGroupUi::updateRightLegStateData(const std_msgs::Float64MultiArrayConstPtr& data)
+{
+  if (data->data.size() < 8)
+  {
+    ROS_WARN("worry data");
+    return;
+  }
+  double scale = line_ae_length_ / std::hypot(data->data[6], data->data[7]);
+  int right_ori_x = ori_x_ + distance_;
+  r_b_x_ = right_ori_x + scale * data->data[0];
+  r_b_y_ = ori_y_ + scale * data->data[1];
+  r_c_x_ = right_ori_x + scale * data->data[2];
+  r_c_y_ = ori_y_ + scale * data->data[3];
+  r_d_x_ = right_ori_x + scale * data->data[4];
+  r_d_y_ = ori_y_ + scale * data->data[5];
+  r_e_x_ = right_ori_x + scale * data->data[6];
+  r_e_y_ = ori_y_ + scale * data->data[7];
+  updateForQueue();
+}
+
+void BalanceLegStateTimeChangeGroupUi::updateConfig()
+{
+  for (auto it : graph_vector_)
+  {
+    if (it.first == "left_leg_ab")
+    {
+      it.second->setStartX(ori_x_);
+      it.second->setStartY(ori_y_);
+      it.second->setEndX(int(l_b_x_));
+      it.second->setEndY(int(l_b_y_));
+    }
+    else if (it.first == "left_leg_bc")
+    {
+      it.second->setStartX(int(l_b_x_));
+      it.second->setStartY(int(l_b_y_));
+      it.second->setEndX(int(l_c_x_));
+      it.second->setEndY(int(l_c_y_));
+    }
+    else if (it.first == "left_leg_cd")
+    {
+      it.second->setStartX(int(l_c_x_));
+      it.second->setStartY(int(l_c_y_));
+      it.second->setEndX(int(l_d_x_));
+      it.second->setEndY(int(l_d_y_));
+    }
+    else if (it.first == "left_leg_de")
+    {
+      it.second->setStartX(int(l_d_x_));
+      it.second->setStartY(int(l_d_y_));
+      it.second->setEndX(int(l_e_x_));
+      it.second->setEndY(int(l_e_y_));
+    }
+    else if (it.first == "right_leg_ab")
+    {
+      it.second->setStartX(ori_x_ + distance_);
+      it.second->setStartY(ori_y_);
+      it.second->setEndX(int(r_b_x_));
+      it.second->setEndY(int(r_b_y_));
+    }
+    else if (it.first == "right_leg_bc")
+    {
+      it.second->setStartX(int(r_b_x_));
+      it.second->setStartY(int(r_b_y_));
+      it.second->setEndX(int(r_c_x_));
+      it.second->setEndY(int(r_c_y_));
+    }
+    else if (it.first == "right_leg_cd")
+    {
+      it.second->setStartX(int(r_c_x_));
+      it.second->setStartY(int(r_c_y_));
+      it.second->setEndX(int(r_d_x_));
+      it.second->setEndY(int(r_d_y_));
+    }
+    else if (it.first == "right_leg_de")
+    {
+      it.second->setStartX(int(r_d_x_));
+      it.second->setStartY(int(r_d_y_));
+      it.second->setEndX(int(r_e_x_));
+      it.second->setEndY(int(r_e_y_));
+    }
+  }
+}
+
 }  // namespace rm_referee

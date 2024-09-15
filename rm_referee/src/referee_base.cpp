@@ -46,6 +46,12 @@ RefereeBase::RefereeBase(ros::NodeHandle& nh, Base& base) : base_(base), nh_(nh)
       nh.subscribe<geometry_msgs::PoseStamped>("/mavros/vision_pose/pose", 1, &RefereeBase::dronePoseCallBack, this);
   RefereeBase::shoot_cmd_sub_ = nh.subscribe<rm_msgs::ShootCmd>("/controllers/shooter_controller/command", 1,
                                                                 &RefereeBase::shootCmdCallBack, this);
+  RefereeBase::balance_leg_length_sub_ = nh.subscribe<std_msgs::Float64MultiArray>(
+      "/controllers/legged_balance_controller/pendulum_length", 1, &RefereeBase::balanceLegLengthCallBack, this);
+  RefereeBase::balance_leg_right_state_sub_ = nh.subscribe<std_msgs::Float64MultiArray>(
+      "/controllers/legged_balance_controller/legCoord/right", 1, &RefereeBase::balanceRightLegStateCallBack, this);
+  RefereeBase::balance_leg_left_state_sub_ = nh.subscribe<std_msgs::Float64MultiArray>(
+      "/controllers/legged_balance_controller/legCoord/left", 1, &RefereeBase::balanceLeftLegStateCallBack, this);
   RefereeBase::sentry_to_referee_sub_ = nh.subscribe<rm_msgs::SentryAttackingTarget>(
       "/sentry_target_to_referee", 1, &RefereeBase::sentryAttackingTargetCallback, this);
   RefereeBase::radar_to_referee_sub_ =
@@ -138,6 +144,12 @@ RefereeBase::RefereeBase(ros::NodeHandle& nh, Base& base) : base_(base), nh_(nh)
       if (rpc_value[i]["name"] == "friend_bullets")
         friend_bullets_time_change_group_ui_ =
             new FriendBulletsTimeChangeGroupUi(rpc_value[i], base_, &graph_queue_, &character_queue_);
+      if (rpc_value[i]["name"] == "balance_leg_length")
+        balance_leg_length_time_change_group_ui_ =
+            new BalanceLegLengthTimeChangeGroupUi(rpc_value[i], base_, &graph_queue_, &character_queue_);
+      if (rpc_value[i]["name"] == "balance_leg_state")
+        balance_leg_state_time_change_group_ui_ =
+            new BalanceLegStateTimeChangeGroupUi(rpc_value[i], base_, &graph_queue_, &character_queue_);
     }
 
     ui_nh.getParam("fixed", rpc_value);
@@ -255,6 +267,10 @@ void RefereeBase::addUi()
     friend_bullets_time_change_group_ui_->addForQueue();
   if (visualize_state_trigger_change_ui_)
     visualize_state_trigger_change_ui_->addForQueue();
+  if (balance_leg_length_time_change_group_ui_)
+    balance_leg_length_time_change_group_ui_->addForQueue();
+  if (balance_leg_state_time_change_group_ui_)
+    balance_leg_state_time_change_group_ui_->addForQueue();
   add_ui_times_++;
 }
 
@@ -476,6 +492,8 @@ void RefereeBase::manualDataCallBack(const rm_msgs::ManualToReferee::ConstPtr& d
     target_trigger_change_ui_->updateManualCmdData(data);
   if (cover_flash_ui_ && !is_adding_)
     cover_flash_ui_->updateManualCmdData(data, ros::Time::now());
+  if (customize_display_flash_ui_ && !is_adding_)
+    customize_display_flash_ui_->updateCmdData(data->ui_display_symbol);
 }
 void RefereeBase::radarDataCallBack(const std_msgs::Int8MultiArrayConstPtr& data)
 {
@@ -608,6 +626,26 @@ void RefereeBase::visualizeStateDataCallBack(const rm_msgs::VisualizeStateDataCo
       state.push_back(state_data);
     visualize_state_trigger_change_ui_->updateUiColor(state);
   }
+}
+
+void RefereeBase::balanceLegLengthCallBack(const std_msgs::Float64MultiArrayConstPtr& data)
+{
+  if (balance_leg_length_time_change_group_ui_ && !is_adding_)
+  {
+    balance_leg_length_time_change_group_ui_->updateLengthData(data);
+  }
+}
+
+void RefereeBase::balanceRightLegStateCallBack(const std_msgs::Float64MultiArrayConstPtr& data)
+{
+  if (balance_leg_state_time_change_group_ui_ && !is_adding_)
+    balance_leg_state_time_change_group_ui_->updateLeftLegStateData(data);
+}
+
+void RefereeBase::balanceLeftLegStateCallBack(const std_msgs::Float64MultiArrayConstPtr& data)
+{
+  if (balance_leg_state_time_change_group_ui_ && !is_adding_)
+    balance_leg_state_time_change_group_ui_->updateRightLegStateData(data);
 }
 
 }  // namespace rm_referee

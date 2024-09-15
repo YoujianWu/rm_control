@@ -66,6 +66,9 @@ public:
   virtual void radarToRefereeCallBack(const rm_msgs::RadarToSentryConstPtr& data);
   virtual void customizeDisplayCmdCallBack(const std_msgs::UInt32ConstPtr& data);
   virtual void visualizeStateDataCallBack(const rm_msgs::VisualizeStateDataConstPtr& data);
+  virtual void balanceLegLengthCallBack(const std_msgs::Float64MultiArrayConstPtr& data);
+  virtual void balanceLeftLegStateCallBack(const std_msgs::Float64MultiArrayConstPtr& data);
+  virtual void balanceRightLegStateCallBack(const std_msgs::Float64MultiArrayConstPtr& data);
 
   // send  ui
   void sendSerialDataCallback();
@@ -98,6 +101,9 @@ public:
   ros::Subscriber shoot_cmd_sub_;
   ros::Subscriber customize_display_cmd_sub_;
   ros::Subscriber visualize_state_data_sub_;
+  ros::Subscriber balance_leg_length_sub_;
+  ros::Subscriber balance_leg_left_state_sub_;
+  ros::Subscriber balance_leg_right_state_sub_;
 
   ChassisTriggerChangeUi* chassis_trigger_change_ui_{};
   ShooterTriggerChangeUi* shooter_trigger_change_ui_{};
@@ -120,6 +126,8 @@ public:
       *engineer_joint3_time_change_ui{};
   TargetDistanceTimeChangeUi* target_distance_time_change_ui_{};
   FriendBulletsTimeChangeGroupUi* friend_bullets_time_change_group_ui_{};
+  BalanceLegLengthTimeChangeGroupUi* balance_leg_length_time_change_group_ui_{};
+  BalanceLegStateTimeChangeGroupUi* balance_leg_state_time_change_group_ui_{};
 
   DroneTowardsTimeChangeGroupUi* drone_towards_time_change_group_ui_{};
   StringTriggerChangeUi *servo_mode_trigger_change_ui_{}, *stone_num_trigger_change_ui_{},
